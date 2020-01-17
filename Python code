@@ -1,0 +1,46 @@
+Created on Sat Nov 30 19:21:16 2019
+
+@author: Florian
+"""
+"""importation des librairies"""
+import serial, time
+import numpy as np
+import matplotlib.pyplot as plt
+"""essai de la liaison série"""
+
+
+arduino = serial.Serial("COM6",9600,timeout=1)
+time.sleep(3)
+"""initialisation des variables"""
+rawdata=[]#données brutes
+compt=0
+
+"""réception des données"""
+
+while compt<50 :
+    rawdata.append(str(arduino.readline()))
+    compt+=1
+    
+print(rawdata)
+
+def nettoie(L):
+    newL=[]
+    for i in range(len(L)):
+        temp=L[i][2:]
+        newL.append(temp[:-5])
+    return newL
+
+cleandata=nettoie(rawdata)
+print(cleandata)
+
+def write(L):
+    file=open("data.txt",mode='w')
+    for i in range(len(L)):
+        file.write(L[i]+'\n')
+    file.close()
+
+write(cleandata)
+
+vals,temps = np.loadtxt("data.txt",delimiter=";",unpack=True)
+plt.plot(temps,vals)
+plt.show()
