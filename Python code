@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+"""
 Created on Sat Nov 30 19:21:16 2019
 
 @author: Florian
@@ -9,7 +11,7 @@ import matplotlib.pyplot as plt
 """essai de la liaison série"""
 
 
-arduino = serial.Serial("COM6",9600,timeout=1)
+arduino = serial.Serial("COM7",9600,timeout=1)
 time.sleep(3)
 """initialisation des variables"""
 rawdata=[]#données brutes
@@ -41,6 +43,10 @@ def write(L):
 
 write(cleandata)
 
-vals,temps = np.loadtxt("data.txt",delimiter=";",unpack=True)
-plt.plot(temps,vals)
+temperat,pres,alti,temps = np.loadtxt("data.txt",delimiter=";",unpack=True)
+plt.plot(temps,pres)
+plt.show()
+plt.plot(temps,temperat)
+plt.show()
+plt.plot(temps,alti)
 plt.show()
