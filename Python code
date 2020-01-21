@@ -8,45 +8,109 @@ Created on Sat Nov 30 19:21:16 2019
 import serial, time
 import numpy as np
 import matplotlib.pyplot as plt
+from tkinter import *
+import os
+import sys
+import glob
+import serial.tools.list_ports
 """essai de la liaison série"""
 
+"""Recherche des ports"""
 
-arduino = serial.Serial("COM7",9600,timeout=1)
-time.sleep(3)
-"""initialisation des variables"""
-rawdata=[]#données brutes
-compt=0
 
-"""réception des données"""
 
-while compt<50 :
-    rawdata.append(str(arduino.readline()))
-    compt+=1
+
+"""Première fenetre"""
+window = Tk()
+window.title("CanSat data reciever")
+window.geometry("700x700")
+window.minsize(700, 700)
+window.iconbitmap("cansatmain.ico")
+window.config(background='#41B77F')
+def numberOfVariable():
+    return entry_number_of_data.get()
+
+def runProgram():
+    print('Search...')
+    ports = serial.tools.list_ports.comports(include_links=False)
+    for port in ports :
+        print('Find port '+ port.device)
+        
+        ser = serial.Serial(port.device)
+        if ser.isOpen():
+            ser.close()
+            
+        ser = serial.Serial(port.device, 9600, timeout=1)
+        ser.flushInput()
+        ser.flushOutput()
+        print('Connect ' + ser.name)
+    """initialisation des variables"""
+    rawdata=[]#données brutes
+    compt=0
+
+    """réception des données"""
     
-print(rawdata)
+    while compt<numberOfVariable :
+        rawdata.append(str(arduino.readline()))
+        compt+=1
+    
+    print(rawdata)
 
-def nettoie(L):
-    newL=[]
-    for i in range(len(L)):
-        temp=L[i][2:]
-        newL.append(temp[:-5])
-    return newL
+    def nettoie(L):
+        newL=[]
+        for i in range(len(L)):
+            temp=L[i][2:]
+            newL.append(temp[:-5])
+            return newL
+        
+        cleandata=nettoie(rawdata)
+        print(cleandata)
 
-cleandata=nettoie(rawdata)
-print(cleandata)
+    def write(L):
+        file=open("data.txt",mode='w')
+        for i in range(len(L)):
+            file.write(L[i]+'\n')
+            file.close()
+            
+        write(cleandata)
 
-def write(L):
-    file=open("data.txt",mode='w')
-    for i in range(len(L)):
-        file.write(L[i]+'\n')
-    file.close()
+    temperat,pres,alti,temps = np.loadtxt("data.txt",delimiter=";",unpack=True)
+    plt.plot(temps,pres)
+    plt.show()
+    plt.plot(temps,temperat)
+    plt.show()
+    plt.plot(temps,alti)
+    plt.show()
 
-write(cleandata)
 
-temperat,pres,alti,temps = np.loadtxt("data.txt",delimiter=";",unpack=True)
-plt.plot(temps,pres)
-plt.show()
-plt.plot(temps,temperat)
-plt.show()
-plt.plot(temps,alti)
-plt.show()
+frame_title = Frame(window, bg='#41B77F')
+sub_frame = Frame(frame_title, bg='#41B77F')
+sub2_frame = Frame(frame_title, bg='#41B77F')
+
+v = "saisissez un port"
+              
+label_title = Label(frame_title, text="CanSat data reciever", font=("Courrier", 40), bg='#41B77F', fg='White')
+label_title.pack()
+
+start_button = Button(frame_title, text="Start program", font=("Courrier", 20), bg='#41B77F', fg='White',command=runProgram)
+start_button.pack(fill=X)
+
+valid_button = Button(sub_frame, text="Valid", font=("Courrier", 20), bg='#41B77F', fg='White', command=numberOfVariable)
+valid_button.grid(row=2, column=0)
+                      
+entry_number_of_data = Entry(sub_frame, font=("Courrier", 20), bg='#41B77F', fg='White')
+entry_number_of_data.grid(row=1, column=0, sticky=N)
+
+entry_title_data = Label(sub_frame, text="enter nomber of data checked", font=("Courrier", 20), bg='#41B77F', fg='White')
+entry_title_data.grid(row=0, column=0, sticky=N)
+
+ports_menu = OptionMenu(sub2_frame, v, ports)
+ports_menu.grid(row=0, column=0)
+
+ 
+sub_frame.pack()
+sub2_frame.pack()
+frame_title.pack()
+
+
+window.mainloop()
